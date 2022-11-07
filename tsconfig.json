@@ -1,0 +1,16 @@
+{
+  "extends": "@lifeomic/typescript-config",
+  "exclude": ["node_modules"],
+  "include": ["src"],
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "inlineSources": false,
+    "inlineSourceMap": false,
+    "esModuleInterop": false,
+    "declaration": true,
+    "skipLibCheck": true
+  }
+}
