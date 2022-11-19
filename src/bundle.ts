@@ -53,10 +53,15 @@ export const bundle = async ({
       outdir,
       entryPoints,
       /**
-       * Don't bundle this, since it is natively available
-       * in the Lambda environment
+       * Don't bundle the AWS SDK, since it is natively available
+       * in the Lambda environment.
+       *
+       * Node runtimes < 18 include the v2 sdk, while runtimes >= 18 include
+       * the v3 SDK.
+       *
+       * https://aws.amazon.com/blogs/compute/node-js-18-x-runtime-now-available-in-aws-lambda/
        */
-      external: ['aws-sdk'],
+      external: nodeVersion >= 18 ? ['@aws-sdk/*'] : ['aws-sdk'],
       /**
        * As of v0.14.44, esbuild by default prefers .ts over .js files.
        *
