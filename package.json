@@ -23,6 +23,7 @@
     "yargs": "^17.5.1"
   },
   "devDependencies": {
+    "@aws-sdk/client-lambda": "^3.213.0",
     "@lifeomic/eslint-config-standards": "^2.1.1",
     "@lifeomic/typescript-config": "^1.0.3",
     "@types/adm-zip": "^0.5.0",
@@ -30,6 +31,7 @@
     "@types/jest": "^27.5.1",
     "@types/node": "^14.0.0",
     "@types/yargs": "^17.0.10",
+    "aws-sdk": "^2.1258.0",
     "conventional-changelog-conventionalcommits": "^4.6.3",
     "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.5.0",

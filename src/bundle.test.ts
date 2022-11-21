@@ -1,6 +1,12 @@
 jest.mock('esbuild', () => ({ build: jest.fn() }));
 
-import { rmSync, readdirSync, writeFileSync, mkdirSync } from 'fs';
+import {
+  rmSync,
+  readdirSync,
+  writeFileSync,
+  mkdirSync,
+  readFileSync,
+} from 'fs';
 import AdmZip = require('adm-zip');
 import { bundle } from './bundle';
 import { build } from 'esbuild';
@@ -244,4 +250,133 @@ test('bundle works with an array of entries', async () => {
       entryName: 'second-file.js',
     }),
   ]);
+});
+
+describe('AWS SDK bundling behavior', () => {
+  /** Bundles the code, returning the output. */
+  const bundleCode = async (params: {
+    node: number;
+    code: string;
+  }): Promise<string> => {
+    writeTestInputFile('test-file.js', params.code);
+    await bundle({
+      node: params.node,
+      entries: [`${TEST_INPUT_DIR}/test-file.js`],
+      outdir: TEST_OUTPUT_DIR,
+    });
+
+    const outputFile = readFileSync(
+      `${TEST_OUTPUT_DIR}/test-file/test-file.js`,
+      { encoding: 'utf8' },
+    );
+
+    return outputFile;
+  };
+
+  /**
+   * There's not a perfect way to confirm whether the SDK was included in the bundle.
+   * So, in the tests below, we use some indirect approaches to make a solid guess.
+   *
+   * In particular, we assume:
+   * - The SDKs are relatively large (thousands of lines). If the bundle includes the SDK,
+   * it's likely to increase the bundle size by thousands of lines.
+   *
+   * - The bundler output will include many string references to the files within
+   * a bundled package. So, e.g. "aws-sdk" will appear in the output code many, many times
+   * if that package was bundled.
+   *
+   * We'll use these assumptions to make assertions below.
+   */
+
+  // Node 12, 14, 16 behavior
+  [12, 14, 16].forEach((node) => {
+    test(`does not bundle aws-sdk in node version ${node}`, async () => {
+      const output = await bundleCode({
+        node,
+        code: `
+          import { Lambda } from 'aws-sdk';
+      
+          export const handler = () => {
+            new Lambda();
+            return {};
+          };
+        `,
+      });
+
+      // Expect small # of lines -- the SDK should not be bundled.
+      const lines = output.split('\n').length;
+      expect(lines).toBeLessThan(100);
+
+      // Expect the "aws-sdk" string to only appear once -- the SDK should not be bundled.
+      const occurrences = output.match(/aws-sdk/g)?.length;
+      expect(occurrences).toStrictEqual(1);
+    });
+
+    test(`does bundle @aws-sdk in node version ${node}`, async () => {
+      const output = await bundleCode({
+        node,
+        code: `
+          import { Lambda } from '@aws-sdk/client-lambda';
+      
+          export const handler = () => {
+            new Lambda();
+            return {};
+          };
+        `,
+      });
+
+      // Expect large # of lines -- the SDK should be bundled.
+      const lines = output.split('\n').length;
+      expect(lines).toBeGreaterThan(5000);
+
+      // Expect the "@aws-sdk/client-lambda" string to appear many times -- the SDK should be bundled.
+      const occurrences = output.match(/@aws-sdk\/client-lambda/g)?.length;
+      expect(occurrences).toBeGreaterThan(50);
+    });
+  });
+
+  // Node 18 behavior.
+  test('does not bundle @aws-sdk in node version 18', async () => {
+    const output = await bundleCode({
+      node: 18,
+      code: `
+        import { Lambda } from '@aws-sdk/client-lambda';
+    
+        export const handler = () => {
+          new Lambda();
+          return {};
+        };
+      `,
+    });
+
+    // Expect small # of lines -- the SDK should not be bundled.
+    const lines = output.split('\n').length;
+    expect(lines).toBeLessThan(100);
+
+    // Expect the "@aws-sdk/client-lambda" string to only appear once -- the SDK should not be bundled.
+    const occurrences = output.match(/@aws-sdk\/client-lambda/g)?.length;
+    expect(occurrences).toStrictEqual(1);
+  });
+
+  test('does bundle aws-sdk in node version 18', async () => {
+    const output = await bundleCode({
+      node: 18,
+      code: `
+        import { Lambda } from 'aws-sdk';
+    
+        export const handler = () => {
+          new Lambda();
+          return {};
+        };
+      `,
+    });
+
+    // Expect large # of lines -- the SDK should be bundled.
+    const lines = output.split('\n').length;
+    expect(lines).toBeGreaterThan(5000);
+
+    // Expect the "aws-sdk" string to appear many times -- the SDK should be bundled.
+    const occurrences = output.match(/aws-sdk/g)?.length;
+    expect(occurrences).toBeGreaterThan(50);
+  });
 });
