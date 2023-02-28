@@ -5,7 +5,7 @@
   "compilerOptions": {
     "target": "es2019",
     "module": "commonjs",
-    "lib": ["ES2020"],
+    "lib": ["ES2022"],
     "outDir": "./dist",
     "inlineSources": false,
     "inlineSourceMap": false,
