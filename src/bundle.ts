@@ -24,6 +24,11 @@ export type BundleOptions = {
   cwd?: string;
 
   /**
+   * Allows for opting out from excluding the aws sdk
+   */
+  includeAwsSdk?: boolean;
+
+  /**
    * Override options to pass to esbuild. These override any options generated
    * by other internal settings.
    *
@@ -38,6 +43,7 @@ export const bundle = async ({
   outdir,
   node: nodeVersion,
   cwd,
+  includeAwsSdk = false,
   esbuild,
 }: BundleOptions) => {
   const entryPoints = (typeof entries === 'string' ? [entries] : entries)
@@ -61,7 +67,11 @@ export const bundle = async ({
        *
        * https://aws.amazon.com/blogs/compute/node-js-18-x-runtime-now-available-in-aws-lambda/
        */
-      external: nodeVersion >= 18 ? ['@aws-sdk/*'] : ['aws-sdk'],
+      external: includeAwsSdk
+        ? []
+        : nodeVersion >= 18
+        ? ['@aws-sdk/*']
+        : ['aws-sdk'],
       /**
        * As of v0.14.44, esbuild by default prefers .ts over .js files.
        *

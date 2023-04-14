@@ -35,11 +35,7 @@ const main = async () => {
     outdir: path.resolve(process.cwd(), outdir),
     node,
     cwd: process.cwd(),
-    esbuild: includeAwsSdk
-      ? {
-          external: [],
-        }
-      : undefined,
+    includeAwsSdk,
   });
 };
 
