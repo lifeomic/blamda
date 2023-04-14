@@ -49,6 +49,37 @@ test('bundle passes the correct arguments to build(...)', async () => {
   );
 });
 
+test('bundle allows for overriding esbuild options build(...)', async () => {
+  writeTestInputFile('first-file.js', `export const TMP = 'TMP';`);
+  await bundle({
+    entries: `${TEST_INPUT_DIR}/first-file.js`,
+    outdir: TEST_OUTPUT_DIR,
+    node: 15,
+    esbuild: {
+      target: 'node19',
+      external: [],
+      alias: {
+        oldpackage: 'newpackage',
+      },
+    },
+  });
+
+  expect(build).toHaveBeenCalledTimes(1);
+  expect(build).toHaveBeenCalledWith(
+    expect.objectContaining({
+      bundle: true,
+      sourcemap: false,
+      platform: 'node',
+      target: 'node19',
+      external: [],
+      resolveExtensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
+      alias: {
+        oldpackage: 'newpackage',
+      },
+    }),
+  );
+});
+
 test('bundle handles the cwd parameter', async () => {
   writeTestInputFile('first-file.js', `export const TMP = 'TMP';`);
   await bundle({
