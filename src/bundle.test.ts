@@ -253,6 +253,28 @@ test('bundle works with an array of entries', async () => {
 });
 
 describe('AWS SDK bundling behavior', () => {
+  test('allows for ignoring AWS SDK exclusion behavior', async () => {
+    writeTestInputFile('first-file.js', `export const TMP = 'TMP';`);
+    await bundle({
+      entries: `${TEST_INPUT_DIR}/first-file.js`,
+      outdir: TEST_OUTPUT_DIR,
+      node: 15,
+      includeAwsSdk: true,
+    });
+
+    expect(build).toHaveBeenCalledTimes(1);
+    expect(build).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bundle: true,
+        sourcemap: false,
+        platform: 'node',
+        target: 'node15',
+        external: [],
+        resolveExtensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
+      }),
+    );
+  });
+
   /** Bundles the code, returning the output. */
   const bundleCode = async (params: {
     node: number;

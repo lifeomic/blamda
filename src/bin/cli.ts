@@ -4,7 +4,9 @@ import * as yargs from 'yargs';
 import { bundle } from '../bundle';
 
 const main = async () => {
-  const { entries, outdir, node } = await yargs(process.argv.slice(2))
+  const { entries, outdir, node, includeAwsSdk } = await yargs(
+    process.argv.slice(2),
+  )
     .option('entries', {
       type: 'string',
       description: 'The lambda entrypoints to bundle. Can be a glob pattern.',
@@ -20,6 +22,11 @@ const main = async () => {
       description: 'The Node version to target.',
       demandOption: true,
     })
+    .option('include-aws-sdk', {
+      type: 'boolean',
+      description: 'Allow opting out from excluding the aws sdk',
+      default: false,
+    })
     .strict()
     .parse();
 
@@ -28,6 +35,7 @@ const main = async () => {
     outdir: path.resolve(process.cwd(), outdir),
     node,
     cwd: process.cwd(),
+    includeAwsSdk,
   });
 };
 
