@@ -6,7 +6,8 @@
   "author": "LifeOmic <development@lifeomic.com>",
   "repository": {},
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "node build.js",
