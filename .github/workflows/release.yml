@@ -26,6 +26,7 @@ jobs:
       - name: Test and Build
         run: |
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+          npm -v
           yarn
           yarn lint
           yarn test

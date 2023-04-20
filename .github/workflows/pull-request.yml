@@ -14,6 +14,7 @@ jobs:
       - name: Test and Build
         run: |
           yarn
+          npm -v
           yarn lint
           yarn test
           yarn build
