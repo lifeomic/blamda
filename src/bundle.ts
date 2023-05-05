@@ -6,7 +6,7 @@ import { promises as fs } from 'fs';
 
 export type BundleOptions = {
   /**
-   * The entrypoint (or entrypoints) to bundle. This can be a glob pattern matching
+   * The entrypoint/s to bundle. This can be a glob pattern matching
    * multiple source files (or a list of glob patterns).
    */
   entries: string | string[];
@@ -38,17 +38,36 @@ export type BundleOptions = {
   esbuild?: ESBuildOptions;
 };
 
+const addIfMissing = (arr: string[], str: string) => {
+  if (!arr.includes(str)) {
+    arr.push(str);
+  }
+};
+
 export const bundle = async ({
   entries,
   outdir,
   node: nodeVersion,
   cwd,
   includeAwsSdk = false,
-  esbuild,
+  esbuild: { external = [], ...esbuild } = {},
 }: BundleOptions) => {
   const entryPoints = (typeof entries === 'string' ? [entries] : entries)
     .map((pattern) => glob.sync(pattern, cwd ? { cwd } : undefined))
     .flat();
+
+  if (!includeAwsSdk) {
+    /**
+     * Don't bundle the AWS SDK, since it is natively available
+     * in the Lambda environment.
+     *
+     * Node runtimes < 18 include the v2 sdk, while runtimes >= 18 include
+     * the v3 SDK.
+     *
+     * https://aws.amazon.com/blogs/compute/node-js-18-x-runtime-now-available-in-aws-lambda/
+     */
+    addIfMissing(external, nodeVersion >= 18 ? '@aws-sdk/*' : 'aws-sdk');
+  }
 
   const buildResult = await withTiming(() =>
     build({
@@ -58,20 +77,7 @@ export const bundle = async ({
       target: `node${nodeVersion}`,
       outdir,
       entryPoints,
-      /**
-       * Don't bundle the AWS SDK, since it is natively available
-       * in the Lambda environment.
-       *
-       * Node runtimes < 18 include the v2 sdk, while runtimes >= 18 include
-       * the v3 SDK.
-       *
-       * https://aws.amazon.com/blogs/compute/node-js-18-x-runtime-now-available-in-aws-lambda/
-       */
-      external: includeAwsSdk
-        ? []
-        : nodeVersion >= 18
-        ? ['@aws-sdk/*']
-        : ['aws-sdk'],
+      external,
       /**
        * As of v0.14.44, esbuild by default prefers .ts over .js files.
        *
