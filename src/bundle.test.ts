@@ -258,7 +258,7 @@ describe('AWS SDK bundling behavior', () => {
     await bundle({
       entries: `${TEST_INPUT_DIR}/first-file.js`,
       outdir: TEST_OUTPUT_DIR,
-      node: 15,
+      node: 16,
       includeAwsSdk: true,
     });
 
@@ -268,7 +268,7 @@ describe('AWS SDK bundling behavior', () => {
         bundle: true,
         sourcemap: false,
         platform: 'node',
-        target: 'node15',
+        target: 'node16',
         external: [],
         resolveExtensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
       }),
@@ -309,9 +309,8 @@ describe('AWS SDK bundling behavior', () => {
    *
    * We'll use these assumptions to make assertions below.
    */
-
   // Node 12, 14, 16 behavior
-  [12, 14, 16].forEach((node) => {
+  describe.each([12, 14, 16])('Node %#', (node) => {
     test(`does not bundle aws-sdk in node version ${node}`, async () => {
       const output = await bundleCode({
         node,
