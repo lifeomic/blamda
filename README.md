@@ -47,6 +47,29 @@ bundle({
 });
 ```
 
+### Build for Synthetics Canary
+
+When deploying a lambda as Synthetics Canary, it requires the packaged js file
+saved under `nodejs/node_modules` within the packaged zip file. Please use the
+option `artifactPrefix` to specify the directory structure within the packaged
+zip file:
+
+```bash
+yarn blamda --entries src/my-service.ts --outdir build-output \
+--artifact-prefix "nodejs/node_modules" --node 14
+```
+
+The output:
+
+```
+build-output/
+  my-service.zip # Upload this to Synthetics Canary!
+  my-service/    # Or, package + upload this directory yourself.
+    nodejs/
+      node_modules/
+        my-service.js
+```
+
 ## Why Use This
 
 As a pattern, bundling Lambda code provides a handful of benefits, especially in an
