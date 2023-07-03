@@ -4,7 +4,7 @@ import * as yargs from 'yargs';
 import { bundle } from '../bundle';
 
 const main = async () => {
-  const { entries, outdir, node, includeAwsSdk } = await yargs(
+  const { entries, outdir, node, includeAwsSdk, artifactPrefix } = await yargs(
     process.argv.slice(2),
   )
     .option('entries', {
@@ -27,6 +27,11 @@ const main = async () => {
       description: 'Allow opting out from excluding the aws sdk',
       default: false,
     })
+    .option('artifact-prefix', {
+      type: 'string',
+      description: 'The artifact prefix within the built zip file',
+      default: '',
+    })
     .strict()
     .parse();
 
@@ -36,6 +41,7 @@ const main = async () => {
     node,
     cwd: process.cwd(),
     includeAwsSdk,
+    artifactPrefix,
   });
 };
 

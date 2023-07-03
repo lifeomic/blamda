@@ -29,6 +29,11 @@ export type BundleOptions = {
   includeAwsSdk?: boolean;
 
   /**
+   * the output directories of build artifact.
+   */
+  artifactPrefix?: string;
+
+  /**
    * Override options to pass to esbuild. These override any options generated
    * by other internal settings.
    *
@@ -50,6 +55,7 @@ export const bundle = async ({
   node: nodeVersion,
   cwd,
   includeAwsSdk = false,
+  artifactPrefix = '',
   esbuild: { external = [], ...esbuild } = {},
 }: BundleOptions) => {
   const entryPoints = (typeof entries === 'string' ? [entries] : entries)
@@ -104,11 +110,11 @@ export const bundle = async ({
 
   await Promise.all(
     outFilenames.map(async (filename) => {
-      const dest = `${outdir}/${filename}`;
+      const dest = `${outdir}/${filename}/${artifactPrefix}`;
       // Make a single directory for the artifacts
       await fs.mkdir(dest, { recursive: true });
       // Move the bundle into the directory
-      await fs.rename(`${dest}.js`, `${dest}/${filename}.js`);
+      await fs.rename(`${outdir}/${filename}.js`, `${dest}/${filename}.js`);
     }),
   );
 

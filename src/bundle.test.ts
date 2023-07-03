@@ -252,6 +252,48 @@ test('bundle works with an array of entries', async () => {
   ]);
 });
 
+test('bundle with artifactPrefix option', async () => {
+  writeTestInputFile(
+    'first-file.ts',
+    `
+    type DummyType = {
+      property: string
+    }
+    export const handler = (): DummyType => {
+      return { property: 'something' };
+    };
+    `,
+  );
+
+  const artifactPrefix = 'nodejs/node_modules';
+
+  await bundle({
+    entries: `${TEST_INPUT_DIR}/first-file.ts`,
+    outdir: TEST_OUTPUT_DIR,
+    artifactPrefix,
+    node: 12,
+  });
+
+  const outputFiles = readdirSync(TEST_OUTPUT_DIR);
+  expect(outputFiles).toEqual(['first-file', 'first-file.zip']);
+
+  expect(
+    readdirSync(`${TEST_OUTPUT_DIR}/first-file/${artifactPrefix}`),
+  ).toEqual(['first-file.js']);
+
+  const zipEntries = new AdmZip(
+    `${TEST_OUTPUT_DIR}/first-file.zip`,
+  ).getEntries();
+  console.log('zipEntries', zipEntries);
+  expect(zipEntries).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        entryName: `${artifactPrefix}/first-file.js`,
+      }),
+    ]),
+  );
+});
+
 describe('AWS SDK bundling behavior', () => {
   test('allows for ignoring AWS SDK exclusion behavior', async () => {
     writeTestInputFile('first-file.js', `export const TMP = 'TMP';`);
@@ -316,7 +358,7 @@ describe('AWS SDK bundling behavior', () => {
         node,
         code: `
           import { Lambda } from 'aws-sdk';
-      
+
           export const handler = () => {
             new Lambda();
             return {};
@@ -338,7 +380,7 @@ describe('AWS SDK bundling behavior', () => {
         node,
         code: `
           import { Lambda } from '@aws-sdk/client-lambda';
-      
+
           export const handler = () => {
             new Lambda();
             return {};
@@ -362,7 +404,7 @@ describe('AWS SDK bundling behavior', () => {
       node: 18,
       code: `
         import { Lambda } from '@aws-sdk/client-lambda';
-    
+
         export const handler = () => {
           new Lambda();
           return {};
@@ -384,7 +426,7 @@ describe('AWS SDK bundling behavior', () => {
       node: 18,
       code: `
         import { Lambda } from 'aws-sdk';
-    
+
         export const handler = () => {
           new Lambda();
           return {};
