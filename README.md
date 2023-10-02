@@ -86,5 +86,3 @@ environment with "many deploys":
   - Reduced cost of S3 storage of code artifacts, thanks to smaller file size.
 
 - Provides an opportunity to make easy Lambda environment-specific optimizations.
-  - e.g. the `aws-sdk` module is "built-in" in to the Lambda environment. We can avoid
-    bundling it and therefore significantly reduce bundle size.

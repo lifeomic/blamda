@@ -43,7 +43,6 @@ test('bundle passes the correct arguments to build(...)', async () => {
       sourcemap: false,
       platform: 'node',
       target: 'node15',
-      external: ['aws-sdk'],
       resolveExtensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
     }),
   );
@@ -295,28 +294,6 @@ test('bundle with artifactPrefix option', async () => {
 });
 
 describe('AWS SDK bundling behavior', () => {
-  test('allows for ignoring AWS SDK exclusion behavior', async () => {
-    writeTestInputFile('first-file.js', `export const TMP = 'TMP';`);
-    await bundle({
-      entries: `${TEST_INPUT_DIR}/first-file.js`,
-      outdir: TEST_OUTPUT_DIR,
-      node: 16,
-      includeAwsSdk: true,
-    });
-
-    expect(build).toHaveBeenCalledTimes(1);
-    expect(build).toHaveBeenCalledWith(
-      expect.objectContaining({
-        bundle: true,
-        sourcemap: false,
-        platform: 'node',
-        target: 'node16',
-        external: [],
-        resolveExtensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
-      }),
-    );
-  });
-
   /** Bundles the code, returning the output. */
   const bundleCode = async (params: {
     node: number;
@@ -351,9 +328,9 @@ describe('AWS SDK bundling behavior', () => {
    *
    * We'll use these assumptions to make assertions below.
    */
-  // Node 12, 14, 16 behavior
-  describe.each([12, 14, 16])('Node %#', (node) => {
-    test(`does not bundle aws-sdk in node version ${node}`, async () => {
+  // Node 12, 14, 16, 18, 20 behavior
+  describe.each([12, 14, 16, 18, 20])('Node %#', (node) => {
+    test(`does bundle aws-sdk in node version ${node}`, async () => {
       const output = await bundleCode({
         node,
         code: `
@@ -366,13 +343,13 @@ describe('AWS SDK bundling behavior', () => {
         `,
       });
 
-      // Expect small # of lines -- the SDK should not be bundled.
+      // Expect large # of lines -- the SDK should be bundled.
       const lines = output.split('\n').length;
-      expect(lines).toBeLessThan(100);
+      expect(lines).toBeGreaterThan(5000);
 
-      // Expect the "aws-sdk" string to only appear once -- the SDK should not be bundled.
+      // Expect the "aws-sdk" string to appear many times -- the SDK should be bundled.
       const occurrences = output.match(/aws-sdk/g)?.length;
-      expect(occurrences).toStrictEqual(1);
+      expect(occurrences).toBeGreaterThan(50);
     });
 
     test(`does bundle @aws-sdk in node version ${node}`, async () => {
@@ -396,50 +373,5 @@ describe('AWS SDK bundling behavior', () => {
       const occurrences = output.match(/@aws-sdk\/client-lambda/g)?.length;
       expect(occurrences).toBeGreaterThan(50);
     });
-  });
-
-  // Node 18 behavior.
-  test('does not bundle @aws-sdk in node version 18', async () => {
-    const output = await bundleCode({
-      node: 18,
-      code: `
-        import { Lambda } from '@aws-sdk/client-lambda';
-
-        export const handler = () => {
-          new Lambda();
-          return {};
-        };
-      `,
-    });
-
-    // Expect small # of lines -- the SDK should not be bundled.
-    const lines = output.split('\n').length;
-    expect(lines).toBeLessThan(100);
-
-    // Expect the "@aws-sdk/client-lambda" string to only appear once -- the SDK should not be bundled.
-    const occurrences = output.match(/@aws-sdk\/client-lambda/g)?.length;
-    expect(occurrences).toStrictEqual(1);
-  });
-
-  test('does bundle aws-sdk in node version 18', async () => {
-    const output = await bundleCode({
-      node: 18,
-      code: `
-        import { Lambda } from 'aws-sdk';
-
-        export const handler = () => {
-          new Lambda();
-          return {};
-        };
-      `,
-    });
-
-    // Expect large # of lines -- the SDK should be bundled.
-    const lines = output.split('\n').length;
-    expect(lines).toBeGreaterThan(5000);
-
-    // Expect the "aws-sdk" string to appear many times -- the SDK should be bundled.
-    const occurrences = output.match(/aws-sdk/g)?.length;
-    expect(occurrences).toBeGreaterThan(50);
   });
 });

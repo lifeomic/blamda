@@ -24,11 +24,6 @@ export type BundleOptions = {
   cwd?: string;
 
   /**
-   * Allows for opting out from excluding the aws sdk
-   */
-  includeAwsSdk?: boolean;
-
-  /**
    * the output directories of build artifact.
    */
   artifactPrefix?: string;
@@ -43,37 +38,17 @@ export type BundleOptions = {
   esbuild?: ESBuildOptions;
 };
 
-const addIfMissing = (arr: string[], str: string) => {
-  if (!arr.includes(str)) {
-    arr.push(str);
-  }
-};
-
 export const bundle = async ({
   entries,
   outdir,
   node: nodeVersion,
   cwd,
-  includeAwsSdk = false,
   artifactPrefix = '',
-  esbuild: { external = [], ...esbuild } = {},
+  esbuild = {},
 }: BundleOptions) => {
   const entryPoints = (typeof entries === 'string' ? [entries] : entries)
     .map((pattern) => glob.sync(pattern, cwd ? { cwd } : undefined))
     .flat();
-
-  if (!includeAwsSdk) {
-    /**
-     * Don't bundle the AWS SDK, since it is natively available
-     * in the Lambda environment.
-     *
-     * Node runtimes < 18 include the v2 sdk, while runtimes >= 18 include
-     * the v3 SDK.
-     *
-     * https://aws.amazon.com/blogs/compute/node-js-18-x-runtime-now-available-in-aws-lambda/
-     */
-    addIfMissing(external, nodeVersion >= 18 ? '@aws-sdk/*' : 'aws-sdk');
-  }
 
   const buildResult = await withTiming(() =>
     build({
@@ -83,7 +58,6 @@ export const bundle = async ({
       target: `node${nodeVersion}`,
       outdir,
       entryPoints,
-      external,
       /**
        * As of v0.14.44, esbuild by default prefers .ts over .js files.
        *
