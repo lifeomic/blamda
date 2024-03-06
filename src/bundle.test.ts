@@ -1,15 +1,16 @@
 jest.mock('esbuild', () => ({ build: jest.fn() }));
 
 import {
-  rmSync,
-  readdirSync,
-  writeFileSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
+  rmSync,
+  writeFileSync,
 } from 'fs';
 import AdmZip = require('adm-zip');
-import { bundle } from './bundle';
 import { build } from 'esbuild';
+
+import { bundle } from './bundle';
 
 const TEST_INPUT_DIR = `${__dirname}/../test-input`;
 const TEST_OUTPUT_DIR = `${__dirname}/../test-output`;
