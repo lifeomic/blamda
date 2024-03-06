@@ -1,8 +1,9 @@
 import { build, BuildOptions as ESBuildOptions } from 'esbuild';
 import * as glob from 'glob';
 import AdmZip = require('adm-zip');
-import { withTiming } from './util';
 import { promises as fs } from 'fs';
+
+import { withTiming } from './util';
 
 export type BundleOptions = {
   /**
