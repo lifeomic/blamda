@@ -88,3 +88,33 @@ environment with "many deploys":
 - Provides an opportunity to make easy Lambda environment-specific optimizations.
   - e.g. the `aws-sdk` module is "built-in" in to the Lambda environment. We can avoid
     bundling it and therefore significantly reduce bundle size.
+
+## Troubleshooting
+
+Q: `esbuild` failed w/ error `Could not resolve require("./src/build/**/*/DTraceProviderBindings")`:
+
+This happens when your app depends on [`dtrace-provider`](https://www.npmjs.com/package/dtrace-provider) while building it on linux/windows w/ blamda.
+
+To fix this, it needs to externalize this package by using a build script. For
+instance:
+
+```Javascript
+// build.js
+const { bundle } = require('@lifeomic/blamda');
+
+bundle({
+  entries: 'src/*Lambda.ts',
+  outdir: '../../deploy/terraform/build',
+  node: 16,
+  esbuild: {
+    minify: true,
+    sourcemap: 'inline',
+    external: ['dtrace-provider'],  // exclude dtrace-provider
+  },
+}).catch((err) => {
+  console.error(err);
+  process.exitCode = 1;
+});
+```
+
+Notice that it could specify esbuild cli argument `--external` by using blamda CLI.
