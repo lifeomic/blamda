@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "adm-zip": "^0.5.10",
-    "esbuild": "^0.19.12",
+    "esbuild": "^0.20.2",
     "glob": "^8.1.0",
     "yargs": "^17.7.1"
   },
