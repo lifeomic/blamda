@@ -117,4 +117,8 @@ bundle({
 });
 ```
 
-Notice that it could specify esbuild cli argument `--external` by using blamda CLI.
+Or using blamda CLI:
+
+```SHELL
+blamda --entries=src/*Lambda.ts --external=dtrace-provider
+```
