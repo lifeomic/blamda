@@ -318,6 +318,33 @@ describe('AWS SDK bundling behavior', () => {
     );
   });
 
+  test('does not mutate external input array', async () => {
+    const external = ['mock-module'];
+
+    writeTestInputFile('first-file.js', `export const TMP = 'TMP';`);
+    await bundle({
+      entries: `${TEST_INPUT_DIR}/first-file.js`,
+      outdir: TEST_OUTPUT_DIR,
+      node: 16,
+      includeAwsSdk: true,
+      esbuild: { external },
+    });
+
+    expect(external).toStrictEqual(external);
+
+    expect(build).toHaveBeenCalledTimes(1);
+    expect(build).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bundle: true,
+        sourcemap: false,
+        platform: 'node',
+        target: 'node16',
+        external: ['mock-module'],
+        resolveExtensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
+      }),
+    );
+  });
+
   /** Bundles the code, returning the output. */
   const bundleCode = async (params: {
     node: number;
