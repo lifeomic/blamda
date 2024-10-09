@@ -57,11 +57,14 @@ export const bundle = async ({
   cwd,
   includeAwsSdk = false,
   artifactPrefix = '',
-  esbuild: { external = [], ...esbuild } = {},
+  esbuild = {},
 }: BundleOptions) => {
   const entryPoints = (typeof entries === 'string' ? [entries] : entries)
     .map((pattern) => glob.sync(pattern, cwd ? { cwd } : undefined))
     .flat();
+
+  // Copy the array, so that we don't mutate the input.
+  const external = [...(esbuild.external ?? [])];
 
   if (!includeAwsSdk) {
     /**
