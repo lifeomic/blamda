@@ -18,10 +18,10 @@
     "blamda": "./bin/cli.js"
   },
   "dependencies": {
-    "adm-zip": "^0.5.10",
-    "esbuild": "^0.20.2",
-    "glob": "^8.1.0",
-    "yargs": "^17.7.1"
+    "adm-zip": "^0.5.16",
+    "esbuild": "^0.25.0",
+    "glob": "^10.4.5",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@aws-sdk/client-lambda": "^3.359.0",
