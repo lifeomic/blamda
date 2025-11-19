@@ -20,7 +20,7 @@
   "dependencies": {
     "adm-zip": "^0.5.16",
     "esbuild": "^0.25.0",
-    "glob": "^10.4.5",
+    "glob": "^10.5.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
